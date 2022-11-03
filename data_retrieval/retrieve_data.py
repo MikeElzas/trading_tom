@@ -1,4 +1,4 @@
-import ccxt
+
 from datetime import datetime, timedelta
 import pandas as pd
 
@@ -11,6 +11,7 @@ def retrieve_data(days, ticker, timeframe):
     ticker = the ticker the user wants to retrieve data on e.g. BTC/USD.
     timeframe = how often the data should get retrieved e.g. 1m, 1h.
     """
+    import ccxt
 
     #here the timedelta is calculated based on the number of days
     since = datetime.utcnow() - timedelta(days=days)
