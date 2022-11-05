@@ -1,16 +1,17 @@
 from data_retrieval.retrieve_data import retrieve_data
-import random
+from random import randrange
 
 # retrieve data
 data = retrieve_data(100, "BTC/EUR", timeframe = "1h")
-commision = 10
+commision = 0
+donkey_basis = 4
 
-# return simple model
-def donkey_model(data, commision):
-    start = min(data['low'].tail())
-    stop = max(data['high'].tail())
+# return donkey prediction
+def donkey_model(data, commision, donkey_basis):
+    start = min(data['low'].tail(donkey_basis))
+    stop = max(data['high'].tail(donkey_basis))
 
-    prediction = random.randrange(start=start, stop=stop)
+    prediction = randrange(start=start, stop=stop)
     prediction_adj = prediction - commision
 
     if prediction_adj > data['close'].iloc[-1]:
@@ -18,12 +19,31 @@ def donkey_model(data, commision):
     else:
         return "hold"
 
-print(donkey_model(data, commision))
+# validate donkey prediction
+def donkey_validate(data, commision, donkey_basis):
 
-# ARIMA MODEL
+    data['y_result'] = (data['close'] - commision) - data['close'].shift(1)
+    data['y_true'] = data['y_result'].apply(lambda x: "buy" if x > 0 else "hold")
 
-# from statsmodels.tsa.stattools import adfuller
-# from statsmodels.graphics.tsaplots import plot_acf, plot_pacf
+    donkey_data = data.iloc[donkey_basis:,:].copy()
 
-# print('p-value zero-diff: ', adfuller(data['close'])[1])
-# print('p-value zero-diff: ', adfuller(data['close'].diff().dropna())[1])
+    donkey_lst = [donkey_model(data.head(row), commision, donkey_basis)
+                  for row in range(len(data)) if row > donkey_basis - 1]
+
+    donkey_data['y_pred'] = donkey_lst
+    donkey_data['y_score'] = (donkey_data['y_pred'] == donkey_data['y_true'])
+
+    score = donkey_data['y_score'].sum() / len(data)
+    result = int(sum(donkey_data['y_result'][donkey_data['y_pred'] == "buy"]))
+
+    def outcome():
+        if result > 0:
+            return 'gain'
+        else:
+            return 'lose'
+
+    result_txt = outcome()
+
+    return f'The accuracy of the donkey model is {round(score, 2)}\nYou will {result_txt} USD {abs(result)} when you pay a commision of USD {commision} per trade'
+
+print(donkey_validate(data, commision, donkey_basis))
