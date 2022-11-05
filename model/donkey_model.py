@@ -1,8 +1,18 @@
 from data_retrieval.retrieve_data import retrieve_data
 from random import randrange
+import pandas as pd
+import os
 
 # retrieve data
-data = retrieve_data(100, "BTC/EUR", timeframe = "1h")
+ticker_list = retrieve_data()
+ticker = 0
+check = ticker_list[ticker].replace("/", "_")
+
+data_dir = os.path.abspath("..")+ "/trading_tom/raw_data/ticker_data/"
+data = pd.read_csv(f"{data_dir}{check}.csv", header=0)
+data.drop(columns = "Unnamed: 0", inplace=True)
+
+# inputs donkey model
 commision = 0
 donkey_basis = 4
 
@@ -11,7 +21,7 @@ def donkey_model(data, commision, donkey_basis):
     start = min(data['low'].tail(donkey_basis))
     stop = max(data['high'].tail(donkey_basis))
 
-    prediction = randrange(start=start, stop=stop)
+    prediction = randrange(start=int(start), stop=int(stop))
     prediction_adj = prediction - commision
 
     if prediction_adj > data['close'].iloc[-1]:
