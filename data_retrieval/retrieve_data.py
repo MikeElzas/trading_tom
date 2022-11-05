@@ -31,4 +31,4 @@ def retrieve_data():
     #convert the data to a DataFrame and write it to a local csv file in the ticker_data folder
         ohlcv = pd.DataFrame(ohlcv_list, columns=columns)
         ticker = ticker.replace("/", "_")
-        ohlcv.to_csv(f"{work_dir}{ticker}", header=columns)
+        ohlcv.to_csv(f"{work_dir}{ticker}.csv", header=columns)
