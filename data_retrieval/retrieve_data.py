@@ -11,8 +11,8 @@ def retrieve_data():
     """
 
     columns = ["time", "open", "high", "low", "close", "volume"]
-    ticker_list = ["BTC/USDT", "ETH/USDT", "SOL/USDT"]
-    work_dir = os.path.abspath("..")+ "/data/ticker_data/"
+    ticker_list = ["BTC/USDT", "ETH/USDT"]
+    data_dir = os.path.abspath("..")+ "/data/ticker_data/"
 
 
     #retrieve data from the exchange
@@ -31,4 +31,4 @@ def retrieve_data():
     #convert the data to a DataFrame and write it to a local csv file in the ticker_data folder
         ohlcv = pd.DataFrame(ohlcv_list, columns=columns)
         ticker = ticker.replace("/", "_")
-        ohlcv.to_csv(f"{work_dir}{ticker}.csv", header=columns)
+        ohlcv.to_csv(f"{data_dir}{ticker}.csv", header=columns)
