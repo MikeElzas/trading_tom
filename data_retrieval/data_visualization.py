@@ -5,7 +5,6 @@ import plotly.graph_objects as go
 
 data = retrieve_data(100, "BTC/EUR", timeframe = "1h")
 
-
 fig = go.Figure(data=[go.Candlestick(x=data["time"], open=data['open'], high=data['high'], low=data['low'], close=data['close'])])
 
 fig.update_layout(
