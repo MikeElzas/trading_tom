@@ -9,13 +9,13 @@ def retrieve_data():
 
     columns = ["time", "open", "high", "low", "close", "volume"]
     ticker_list = ["BTC/USDT", "ETH/USDT", "SOL/USDT"]
-    data_dir = os.path.abspath("..")+ "/raw_data/ticker_data/"
+    data_dir = os.path.abspath("..")+ "/trading_tom/raw_data/ticker_data/"
     ftx = ccxt.ftx()
 
     #retrieve data from the exchange
     for ticker in ticker_list:
         check = ticker.replace("/", "_")
-        file_path =os.path.isfile(data_dir+check)
+        file_path =os.path.isfile(data_dir+check+".csv")
 
         #first check whether the .csv file already exists
         if file_path == True :
@@ -53,3 +53,5 @@ def retrieve_data():
         ohlcv = pd.DataFrame(data, columns=columns)
         ticker = ticker.replace("/", "_")
         ohlcv.to_csv(f"{data_dir}{ticker}.csv", header=columns)
+
+    return ticker_list
