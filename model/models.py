@@ -8,6 +8,9 @@ retrieve_data()
 #function that trains a logistic regression
 
 def log_regression(ticker):
+    """"a function that based on the ticker creates a volume - return logistic regression
+    ticker: Ticker should be in format XXX_XXX e.g. BTC_USDT
+    """
     #import the data, this should become a relative path
     data =pd.read_csv(f"raw_data/ticker_data/{ticker}.csv")
     data.drop(columns = "Unnamed: 0",inplace = True)
