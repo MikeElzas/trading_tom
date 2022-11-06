@@ -6,9 +6,6 @@ from sklearn.model_selection import cross_validate
 from sklearn.model_selection import train_test_split
 
 
-#update to latest data
-
-
 def log_regression(ticker):
     """"a function that based on the ticker creates a volume - return logistic regression
     ticker: Ticker should be in format XXX_XXX e.g. BTC_USDT
