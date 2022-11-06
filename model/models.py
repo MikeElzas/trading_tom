@@ -1,6 +1,7 @@
 from data_retrieval.retrieve_data import retrieve_data
 import pandas as pd
 from sklearn.linear_model import LogisticRegression
+import pickle
 
 #update to latest data
 retrieve_data()
