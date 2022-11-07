@@ -18,5 +18,10 @@ def feature_calc():
         data["12dayewm"] = data['close'].ewm(span=(12 * 24), adjust=False).mean()
         data["26dayewm"] = data['close'].ewm(span=(26 * 24), adjust=False).mean()
         data["50dayewm"] = data['close'].ewm(span=(50 * 24), adjust=False).mean()
+
+        #TO_DO add more features here
+
+
+        #write the csv back into the ticker_data folder
         columns = data.columns
         data.to_csv(f"{path}{ticker}", header=columns)
