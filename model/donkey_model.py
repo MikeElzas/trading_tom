@@ -9,8 +9,7 @@ ticker = 0
 check = ticker_list[ticker].replace("/", "_")
 
 data_dir = os.path.abspath("..")+ "/trading_tom/raw_data/ticker_data/"
-data = pd.read_csv(f"{data_dir}{check}.csv", header=0)
-data.drop(columns = "Unnamed: 0", inplace=True)
+data = pd.read_csv(f"{data_dir}{check}.csv", index_col = 0)
 
 # inputs donkey model
 commision = 0
