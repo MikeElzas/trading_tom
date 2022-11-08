@@ -4,6 +4,7 @@ from sklearn.linear_model import LogisticRegression
 import pickle
 from sklearn.model_selection import cross_validate
 from sklearn.model_selection import train_test_split
+import os
 
 
 def log_regression(ticker):
@@ -14,13 +15,16 @@ def log_regression(ticker):
     retrieve_data()
 
     #import the data, this should become a relative path
-    data =pd.read_csv(f"raw_data/ticker_data/{ticker}.csv")
-    data.drop(columns = "Unnamed: 0",inplace = True)
+    data_dir = os.path.abspath("..")+ "/trading_tom/raw_data/ticker_data/"
+    data = pd.read_csv(f"{data_dir}{ticker}.csv", index_col =0)
+
+
+    data =pd.read_csv(f"raw_data/ticker_data/{ticker}.csv", index_col = 0)
 
     #calculate the return for a given period
     data["return"] = data["close"].pct_change()
-    #first value is a NaN so set to zero
-    data["return"].iloc[0] = 0
+    #first value is a NaN so leave out line
+    data = data[1:]
 
 
     #function that makes the return either 1, if it is above 0.005 and otherwise 0

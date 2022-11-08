@@ -5,8 +5,11 @@ import os
 def feature_calc():
     """This function calculates all the features used in the training
      """
-    #define the path where to find the data_files
+    #first create clean data
+    retrieve_data()
 
+    #define the path where to find the data_files
+    #clean this up later
     files = os.listdir(os.path.abspath(".")+"/raw_data/ticker_data")
     path = os.path.abspath(".")+"/raw_data/ticker_data/"
 
