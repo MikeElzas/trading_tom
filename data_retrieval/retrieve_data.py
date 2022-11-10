@@ -33,14 +33,15 @@ def retrieve_data():
                 ohlcv = exchange.fetch_ohlcv(ticker, '1h', since=from_ts, limit=1000)
                 ohlcv_list.extend(ohlcv)
 
-
             ohlcv_list = pd.DataFrame(ohlcv_list, columns = columns)
             data = pd.concat([data,ohlcv_list], ignore_index=True)
+
         #if the file does not already exist, we make a new file
         else:
             from_ts = exchange.parse8601('2021-01-01 00:00:00')
             ohlcv = exchange.fetch_ohlcv(ticker, '1h', since=from_ts, limit=1000)
             ohlcv_list = ohlcv.copy()
+
             #if the len of OHLCV is 1000 it indicates that there is still more data left, if it is less then we know we are at the end
             while(len(ohlcv)==1000):
                 from_ts = ohlcv[-1][0]
