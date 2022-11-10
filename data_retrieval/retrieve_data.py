@@ -1,6 +1,7 @@
 import ccxt
 import pandas as pd
 import os
+from datetime import datetime
 
 def retrieve_data():
     """
@@ -52,6 +53,7 @@ def retrieve_data():
 
     #convert the data to a DataFrame and write it to a local csv file in the ticker_data folder
         ohlcv = pd.DataFrame(data, columns=columns)
+        ohlcv['time'] = ohlcv['time'].apply(lambda x : datetime.fromtimestamp(x/1000).strftime('%Y-%m-%d %H:%M'))
         ticker = ticker.replace("/", "_")
         ohlcv.to_csv(f"{data_dir}{ticker}.csv", header=columns)
 

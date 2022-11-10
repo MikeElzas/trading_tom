@@ -46,7 +46,6 @@ def feature_calc():
         data['obv_ema'] = data['obv'].ewm(span=(12 * 24), adjust=False).mean()
 
         #TO_DO add more features here
-        print(data)
 
         #write the csv back into the ticker_data folder
         columns = data.columns
