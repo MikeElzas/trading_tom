@@ -1,5 +1,6 @@
 import pandas as pd
 import os
+from data_retrieval.retrieve_data import retrieve_data
 
 
 def feature_calc():
@@ -21,6 +22,10 @@ def feature_calc():
         data["12dayewm"] = data['close'].ewm(span=(12 * 24), adjust=False).mean()
         data["26dayewm"] = data['close'].ewm(span=(26 * 24), adjust=False).mean()
         data["50dayewm"] = data['close'].ewm(span=(50 * 24), adjust=False).mean()
+
+        #calculate the MACD
+        data["MACD"] = data["12dayewm"] - data["26dayewm"]
+
 
         #TO_DO add more features here
 
