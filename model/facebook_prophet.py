@@ -5,7 +5,7 @@ from fbprophet import Prophet
 
 data = retrieve_data()
 
-# Temp read csv // Need to read csv from ticker_data
+# Temp: read csv // Need to read csv from ticker_data
 df = pd.read_csv('/Users/davidlewagon/code/David3-8/taxifare-website/trading_tom/raw_data/ticker_data/BTC_USDT.csv')
 
 # Temp: This is fixed in retrieve_data.py
