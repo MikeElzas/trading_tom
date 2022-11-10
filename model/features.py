@@ -26,10 +26,29 @@ def feature_calc():
         #calculate the MACD
         data["MACD"] = data["12dayewm"] - data["26dayewm"]
 
+        #calculate the OBV
+        obv = 0
+        data['obv'] = 0
+
+        for i in range(len(data.index)):
+            if i == 0:
+                None
+            elif data.iloc[i]['close'] > data.iloc[i-1]['close']:
+                obv += data.iloc[i]['volume']
+                data.loc[i, 'obv'] = obv
+            elif data.iloc[i]['close'] < data.iloc[i-1]['close']:
+                obv -= data.iloc[i]['volume']
+                data.loc[i, 'obv'] = obv
+            else:
+                None
+
+        #calculate the OBV_EMA
+        data['obv_ema'] = data['obv'].ewm(span=(12 * 24), adjust=False).mean()
 
         #TO_DO add more features here
-
 
         #write the csv back into the ticker_data folder
         columns = data.columns
         data.to_csv(f"{path}{ticker}", header=columns)
+
+feature_calc()
