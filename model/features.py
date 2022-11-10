@@ -26,6 +26,7 @@ def feature_calc():
         #calculate the MACD
         data["MACD"] = data["12dayewm"] - data["26dayewm"]
 
+
         #TO_DO add more features here
 
 
