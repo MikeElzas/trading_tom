@@ -38,6 +38,7 @@ def validate_data(ticker, file_path,data_dir):
        validate = False
 
         # CSV empty or only headers present
+#TODO: Check how to find right folder
    if data_dir.getsize(f"{check}.csv") == 0:
         print(f'The CSV for {ticker} is empty')
         validate = False
