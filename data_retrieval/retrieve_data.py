@@ -3,10 +3,6 @@ import pandas as pd
 import os
 from datetime import datetime
 
-def validate_data():
-
-
-
 def retrieve_data():
     """
     this function is used to retrieve data from FTX.
@@ -16,52 +12,80 @@ def retrieve_data():
     ticker_list = ["BTC/USDT", "ETH/USDT", "SOL/USDT"]
     data_dir = os.path.abspath("..")+ "/raw_data/ticker_data/"
     exchange = ccxt.binance()
+    start_ts = exchange.parse8601('2021-01-01 00:00:00')
 
-    #retrieve data from the exchange
+    # Retrieve data from the exchange
     for ticker in ticker_list:
         check = ticker.replace("/", "_")
-        file_path =os.path.isfile(data_dir+check+".csv")
-
-        #first check whether the .csv file already exists
-        if file_path == True :
+        file_path = os.path.isfile(data_dir+check+".csv")
+        # Validate the data, return data & bool
+        validate = validate_data(ticker, file_path, data_dir)
+        # Data is valid, if CSV is exists and is not corrupted
+        if validate == True:
             data = pd.read_csv(f"{data_dir}{check}.csv")
-            data.drop(columns = "Unnamed: 0", inplace=True)
-            last_date = data["time"].iat[-1]
-            data = data.iloc[:-1]
-            ohlcv = exchange.fetch_ohlcv(ticker, '1h', since=last_date, limit=1000)
+            update_data(data, ticker, exchange, columns)
 
-            ohlcv_list = ohlcv.copy()
-
-            while(len(ohlcv)==1000):
-                from_ts = ohlcv[-1][0]
-                ohlcv.clear()
-                ohlcv = exchange.fetch_ohlcv(ticker, '1h', since=from_ts, limit=1000)
-                ohlcv_list.extend(ohlcv)
-
-            ohlcv_list = pd.DataFrame(ohlcv_list, columns = columns)
-            data = pd.concat([data,ohlcv_list], ignore_index=True)
-
-        #if the file does not already exist, we make a new file
+        # Data is invalid, non-existent -> Write new data
         else:
-            from_ts = exchange.parse8601('2021-01-01 00:00:00')
-            ohlcv = exchange.fetch_ohlcv(ticker, '1h', since=from_ts, limit=1000)
-            ohlcv_list = ohlcv.copy()
-
-            #if the len of OHLCV is 1000 it indicates that there is still more data left, if it is less then we know we are at the end
-            while(len(ohlcv)==1000):
-                from_ts = ohlcv[-1][0]
-                ohlcv.clear()
-                ohlcv = exchange.fetch_ohlcv(ticker, '1h', since=from_ts, limit=1000)
-                ohlcv_list.extend(ohlcv)
-                data = ohlcv_list
-
-    #convert the data to a DataFrame and write it to a local csv file in the ticker_data folder
-        ohlcv = pd.DataFrame(data, columns=columns)
-        ohlcv['time'] = ohlcv['time'].apply(lambda x : datetime.fromtimestamp(x/1000).strftime('%Y-%m-%d %H:%M'))
-        ticker = ticker.replace("/", "_")
-        ohlcv.to_csv(f"{data_dir}{ticker}.csv", header=columns)
+            write_data(ticker, exchange, columns, data_dir, start_ts)
 
     return ticker_list
+def validate_data(ticker, file_path,data_dir):
+   validate = True
+
+   if file_path == False:
+       print(f"No CSV present for: {ticker}")
+       validate = False
+
+        # CSV empty or only headers present
+   if data_dir.getsize(f"{check}.csv") == 0:
+        print(f'The CSV for {ticker} is empty')
+        validate = False
 
 
-tickerlist = retrieve_data()
+   if validate is False and file_path == True:
+        os.remove(f"{ticker}.csv")
+
+   return validate
+
+def update_data(data, ticker, exchange, columns):
+    data.drop(columns="Unnamed: 0", inplace=True)
+    last_date = data["time"].iat[-1]
+    data = data.iloc[:-1]
+    ohlcv = exchange.fetch_ohlcv(ticker, '1h', since=last_date, limit=1000)
+    ohlcv_list = ohlcv.copy()
+
+    while (len(ohlcv) == 1000):
+        from_ts = ohlcv[-1][0]
+        ohlcv.clear()
+        ohlcv = exchange.fetch_ohlcv(ticker, '1h', since=from_ts, limit=1000)
+        ohlcv_list.extend(ohlcv)
+
+    ohlcv_list = pd.DataFrame(ohlcv_list, columns=columns)
+    data = pd.concat([data, ohlcv_list], ignore_index=True)
+
+    last_date2 = datetime.fromtimestamp(last_date/ 1000).strftime('%Y-%m-%d %H:%M')
+    print(f"Updated data for {ticker} per {last_date2}")
+    return data
+
+def write_data(ticker, exchange, columns, data_dir, start_ts):
+    ohlcv = exchange.fetch_ohlcv(ticker, '1h', since=start_ts, limit=1000)
+    ohlcv_list = ohlcv.copy()
+
+    while (len(ohlcv) == 1000):
+        from_ts = ohlcv[-1][0]
+        ohlcv.clear()
+        ohlcv = exchange.fetch_ohlcv(ticker, '1h', since=from_ts, limit=1000)
+        ohlcv_list.extend(ohlcv)
+        data = ohlcv_list
+
+    ohlcv = pd.DataFrame(data, columns=columns)
+    ticker = ticker.replace("/", "_")
+    ohlcv.to_csv(f"{data_dir}{ticker}.csv", header=columns)
+
+    print(f"Building new CSV for: {ticker}")
+
+
+
+if __name__ == "__main__":
+    retrieve_data()
