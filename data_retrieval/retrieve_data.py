@@ -3,6 +3,10 @@ import pandas as pd
 import os
 from datetime import datetime
 
+def validate_data():
+
+
+
 def retrieve_data():
     """
     this function is used to retrieve data from FTX.
@@ -10,7 +14,7 @@ def retrieve_data():
 
     columns = ["time", "open", "high", "low", "close", "volume"]
     ticker_list = ["BTC/USDT", "ETH/USDT", "SOL/USDT"]
-    data_dir = os.path.abspath("..")+ "/trading_tom/raw_data/ticker_data/"
+    data_dir = os.path.abspath("..")+ "/raw_data/ticker_data/"
     exchange = ccxt.binance()
 
     #retrieve data from the exchange
@@ -58,3 +62,6 @@ def retrieve_data():
         ohlcv.to_csv(f"{data_dir}{ticker}.csv", header=columns)
 
     return ticker_list
+
+
+tickerlist = retrieve_data()
