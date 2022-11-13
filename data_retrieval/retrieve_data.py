@@ -2,6 +2,7 @@ import ccxt
 import pandas as pd
 import os
 from datetime import datetime
+import csv
 
 def retrieve_data():
     """
@@ -19,7 +20,9 @@ def retrieve_data():
         check = ticker.replace("/", "_")
         file_path = os.path.isfile(data_dir+check+".csv")
         # Validate the data, return data & bool
+
         validate = validate_data(ticker, file_path, data_dir)
+
         # Data is valid, if CSV is exists and is not corrupted
         if validate == True:
             data = pd.read_csv(f"{data_dir}{check}.csv")
@@ -32,20 +35,29 @@ def retrieve_data():
     return ticker_list
 def validate_data(ticker, file_path,data_dir):
    validate = True
+   ticker = ticker.replace("/", "_")
 
    if file_path == False:
        print(f"No CSV present for: {ticker}")
        validate = False
 
-        # CSV empty or only headers present
-#TODO: Check how to find right folder
-   if data_dir.getsize(f"{check}.csv") == 0:
-        print(f'The CSV for {ticker} is empty')
-        validate = False
+
+   # CSV empty or only headers present
+   try:
+        with open(f"{data_dir + ticker}.csv", 'r') as csvfile:
+            csv_dict = [row for row in csv.DictReader(csvfile)]
+            if len(csv_dict) == 0:
+                print(f"The CSV is empty: {ticker}")
+                validate = False
+   except:
+       print(f"Preparing new build for: {ticker}")
+   # if os.path.getsize(data_dir) < 161:
+   #      print(f'The CSV for {ticker} is empty')
+   #      validate = False
 
 
    if validate is False and file_path == True:
-        os.remove(f"{ticker}.csv")
+        os.remove(f"{data_dir + ticker}.csv")
 
    return validate
 
@@ -85,7 +97,6 @@ def write_data(ticker, exchange, columns, data_dir, start_ts):
     ohlcv.to_csv(f"{data_dir}{ticker}.csv", header=columns)
 
     print(f"Building new CSV for: {ticker}")
-
 
 
 if __name__ == "__main__":
