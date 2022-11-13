@@ -1,6 +1,7 @@
 import pandas as pd
 import os
 from data_retrieval.retrieve_data import retrieve_data
+import datetime
 
 
 def feature_calc():
@@ -17,6 +18,9 @@ def feature_calc():
     for ticker in files:
         #call up the csv data, index_col = 0 skips the first column
         data = pd.read_csv(f"raw_data/ticker_data/{ticker}",index_col = 0)
+
+        # Add time column to datetime
+        data['datetime'] = data['time'].apply(lambda x: datetime.fromtimestamp(x / 1000).strftime('%Y-%m-%d %H:%M'))
 
         #calculating different exponential weighted moving averages (12 day, 26 day and 50 day )
         data["12dayewm"] = data['close'].ewm(span=(12 * 24), adjust=False).mean()
