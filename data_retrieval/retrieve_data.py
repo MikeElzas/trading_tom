@@ -31,8 +31,9 @@ def retrieve_data():
         # Data is invalid, non-existent -> Write new data
         else:
             write_data(ticker, exchange, columns, data_dir, start_ts)
+    #TODO: Return // dataframe with name of the ticker for further refernce
 
-    return ticker_list
+    return ticker_list, data
 def validate_data(ticker, file_path,data_dir):
    validate = True
    ticker = ticker.replace("/", "_")
