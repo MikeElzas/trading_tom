@@ -11,7 +11,7 @@ def retrieve_data():
 
     columns = ["time", "open", "high", "low", "close", "volume"]
     ticker_list = ["BTC/USDT", "ETH/USDT", "SOL/USDT"]
-    data_dir = os.path.abspath("..")+ "/raw_data/ticker_data/"
+    data_dir = os.path.abspath("..")+ "/trading_tom/raw_data/ticker_data/"
     exchange = ccxt.binance()
     start_ts = exchange.parse8601('2021-01-01 00:00:00')
 

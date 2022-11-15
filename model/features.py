@@ -7,8 +7,6 @@ import datetime
 def feature_calc():
     """This function calculates all the features used in the training
      """
-    #first create clean data
-    retrieve_data()
 
     #define the path where to find the data_files
     #clean this up later
@@ -20,7 +18,7 @@ def feature_calc():
         data = pd.read_csv(f"raw_data/ticker_data/{ticker}",index_col = 0)
 
         # Add time column to datetime
-        data['datetime'] = data['time'].apply(lambda x: datetime.fromtimestamp(x / 1000).strftime('%Y-%m-%d %H:%M'))
+        #data['datetime'] = data['time'].apply(lambda x: datetime.fromtimestamp(x / 1000).strftime('%Y-%m-%d %H:%M'))
 
         #calculating different exponential weighted moving averages (12 day, 26 day and 50 day )
         data["12dayewm"] = data['close'].ewm(span=(12 * 24), adjust=False).mean()

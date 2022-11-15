@@ -1,10 +1,14 @@
-from data_retrieval.retrieve_data import retrieve_data
+
 import pandas as pd
 from sklearn.linear_model import LogisticRegression
 import pickle
 from sklearn.model_selection import cross_validate
 from sklearn.model_selection import train_test_split
 import os
+
+#trading_tom specific imports
+from model.features import feature_calc
+from data_retrieval.retrieve_data import retrieve_data
 
 
 def log_regression(ticker):
@@ -13,6 +17,7 @@ def log_regression(ticker):
     """
     #always ensure latest data is present
     retrieve_data()
+    feature_calc()
 
     #import the data, this should become a relative path
     data_dir = os.path.abspath("..")+ "/trading_tom/raw_data/ticker_data/"
@@ -29,7 +34,7 @@ def log_regression(ticker):
 
     #function that makes the return either 1, if it is above 0.005 and otherwise 0
     def return_log(df):
-        if df["return"] >= 0.005:
+        if df["return"] >= 0.002:
             return 1
         else:
             return 0
@@ -44,7 +49,7 @@ def log_regression(ticker):
     data = data[1:]
 
     #define X and y
-    X = data[["lagged_vol"]]
+    X = data[["lagged_vol","12dayewm","26dayewm", "50dayewm", "MACD", "obv", "obv_ema"]]
     y = data["return_log"]
 
     #split the data in train and test sets
@@ -55,6 +60,7 @@ def log_regression(ticker):
     model.fit(X_train, y_train)
     score = model.score(X_test, y_test)
 
+
     #eventually I think we should use a cross validate
     #cross_validate(model, X_train, y_train, cv = 5)
 
@@ -62,4 +68,4 @@ def log_regression(ticker):
     filename = 'trained_log_model'
     pickle.dump(model, open(filename, 'wb'))
 
-    return score
+    return score, data
