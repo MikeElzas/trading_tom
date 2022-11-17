@@ -43,6 +43,25 @@ def cloud_validate_data(ticker:str):
 
     return validate
 
+def cloud_append_data(data:pd.DataFrame,ticker:str):
+    """
+    append dataframe to BigQuery based on a pd.dataframe and a ticker
+    """
+    check = ticker.replace("/", "_")
+
+    dataset_ref = bigquery.DatasetReference(PROJECT_ID, DATASET)
+    table_ref = dataset_ref.table(check)
+
+    # bq requires str columns starting with a letter or underscore
+    data.columns = [f"_{column}" if type(column) != str else column for column in data.columns]
+
+    # define write mode and schema
+    write_mode = "WRITE_APPEND"
+    job_config = bigquery.LoadJobConfig(write_disposition=write_mode)
+
+    # load data
+    job = client.load_table_from_dataframe(data, table_ref, job_config=job_config)
+    result = job.result()
 
 def cloud_save_data(data:pd.DataFrame,ticker:str):
     """

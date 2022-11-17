@@ -3,7 +3,7 @@ import pandas as pd
 import os
 from datetime import datetime
 import csv
-from big_query import cloud_get_data, cloud_save_data, cloud_validate_data
+from big_query import cloud_get_data, cloud_save_data, cloud_validate_data, cloud_append_data
 from local_disk import local_get_data, local_save_data, local_validate_data, local_append_data
 
 def retrieve_data():
@@ -34,6 +34,7 @@ def retrieve_data():
             if validate == True:
                 data = cloud_get_data(ticker)
                 data = update_data(data,ticker,exchange,columns)
+                cloud_append_data(data,ticker)
             else: write_data(ticker, exchange, columns, start_ts)
 
         else:
