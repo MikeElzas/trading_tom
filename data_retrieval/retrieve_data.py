@@ -3,6 +3,8 @@ import pandas as pd
 import os
 from datetime import datetime
 import csv
+from big_query import cloud_get_data, cloud_save_data, cloud_validate_data, cloud_append_data
+from local_disk import local_get_data, local_save_data, local_validate_data, local_append_data
 
 def retrieve_data():
     """
@@ -11,61 +13,51 @@ def retrieve_data():
 
     columns = ["time", "open", "high", "low", "close", "volume"]
     ticker_list = ["BTC/USDT", "ETH/USDT", "SOL/USDT"]
-    data_dir = os.path.abspath("..")+ "/raw_data/ticker_data/"
     exchange = ccxt.binance()
     start_ts = exchange.parse8601('2021-01-01 00:00:00')
 
     # Retrieve data from the exchange
     for ticker in ticker_list:
         check = ticker.replace("/", "_")
-        file_path = os.path.isfile(data_dir+check+".csv")
+
         # Validate the data, return data & bool
+        if os.environ.get('DATA_SOURCE') == 'local':
+            validate = local_validate_data(ticker)
+            if validate == True:
+                data = local_get_data(ticker)
+                data = update_data(data,ticker,exchange,columns)
+                local_append_data(data,ticker,columns)
+            else: write_data(ticker, exchange, columns, start_ts)
 
-        validate = validate_data(ticker, file_path, data_dir)
+        elif os.environ.get('DATA_SOURCE') == 'cloud':
+            validate = cloud_validate_data(ticker)
+            if validate == True:
+                data = cloud_get_data(ticker)
+                data = update_data(data,ticker,exchange,columns)
+                cloud_append_data(data,ticker)
+            else: write_data(ticker, exchange, columns, start_ts)
 
-        # Data is valid, if CSV is exists and is not corrupted
-        if validate == True:
-            data = pd.read_csv(f"{data_dir}{check}.csv")
-            update_data(data, ticker, exchange, columns)
-
-        # Data is invalid, non-existent -> Write new data
         else:
-            write_data(ticker, exchange, columns, data_dir, start_ts)
+            raise ValueError(f"Value in .env{os.environ.get('DATA_SOURCE')} is unknown")
+
+
+
     #TODO: Return // dataframe with name of the ticker for further refernce
 
     return ticker_list, data
-def validate_data(ticker, file_path,data_dir):
-   validate = True
-   ticker = ticker.replace("/", "_")
-
-   if file_path == False:
-       print(f"No CSV present for: {ticker}")
-       validate = False
 
 
-   # CSV empty or only headers present
-   try:
-        with open(f"{data_dir + ticker}.csv", 'r') as csvfile:
-            csv_dict = [row for row in csv.DictReader(csvfile)]
-            if len(csv_dict) == 0:
-                print(f"The CSV is empty: {ticker}")
-                validate = False
-   except:
-       print(f"Preparing new build for: {ticker}")
-   # if os.path.getsize(data_dir) < 161:
-   #      print(f'The CSV for {ticker} is empty')
-   #      validate = False
-
-
-   if validate is False and file_path == True:
-        os.remove(f"{data_dir + ticker}.csv")
-
-   return validate
 
 def update_data(data, ticker, exchange, columns):
-    data.drop(columns="Unnamed: 0", inplace=True)
-    last_date = data["time"].iat[-1]
-    data = data.iloc[:-1]
+    #data.drop(columns="Unnamed: 0", inplace=True)
+    #last_date = data["time"].iat[-1]
+    last_date = data["time"].max()
+    data = data[data['time']!=last_date]
+
+
+    print(last_date)
+    print(data)
+
     ohlcv = exchange.fetch_ohlcv(ticker, '1h', since=last_date, limit=1000)
     ohlcv_list = ohlcv.copy()
 
@@ -76,13 +68,15 @@ def update_data(data, ticker, exchange, columns):
         ohlcv_list.extend(ohlcv)
 
     ohlcv_list = pd.DataFrame(ohlcv_list, columns=columns)
-    data = pd.concat([data, ohlcv_list], ignore_index=True)
+    #data = pd.concat([data, ohlcv_list], ignore_index=True)
+    #ohlcv_list.to_csv('log.csv', mode='a', index=False, header=False)
 
     last_date2 = datetime.fromtimestamp(last_date/ 1000).strftime('%Y-%m-%d %H:%M')
+    print(ohlcv_list)
     print(f"Updated data for {ticker} per {last_date2}")
-    return data
+    return ohlcv_list
 
-def write_data(ticker, exchange, columns, data_dir, start_ts):
+def write_data(ticker, exchange, columns, start_ts):
     ohlcv = exchange.fetch_ohlcv(ticker, '1h', since=start_ts, limit=1000)
     ohlcv_list = ohlcv.copy()
 
@@ -95,7 +89,17 @@ def write_data(ticker, exchange, columns, data_dir, start_ts):
 
     ohlcv = pd.DataFrame(data, columns=columns)
     ticker = ticker.replace("/", "_")
-    ohlcv.to_csv(f"{data_dir}{ticker}.csv", header=columns)
+    #ohlcv.to_csv(f"{data_dir}{ticker}.csv", header=columns)
+
+    #save data based on data_source type
+    if os.environ.get('DATA_SOURCE') == 'local':
+        local_save_data(ohlcv,ticker,columns)
+
+    elif os.environ.get('DATA_SOURCE') == 'cloud':
+        cloud_save_data(ohlcv,ticker)
+
+    else:
+        raise ValueError(f"Value in .env{os.environ.get('DATA_SOURCE')} is unknown")
 
     print(f"Building new CSV for: {ticker}")
 
