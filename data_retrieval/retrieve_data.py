@@ -62,6 +62,7 @@ def update_data(data, ticker, exchange, columns):
 
     last_date = int(data["time"].max())
     data = data[data['time']!=last_date]
+    last_date2 = int(data["time"].max())
 
     ohlcv = exchange.fetch_ohlcv(ticker, '1h', since=last_date, limit=1000)
     ohlcv_list = ohlcv.copy()
@@ -73,12 +74,16 @@ def update_data(data, ticker, exchange, columns):
         ohlcv_list.extend(ohlcv)
 
     ohlcv_list = pd.DataFrame(ohlcv_list, columns=columns)
+    ohlcv_list = pd.concat([ohlcv_list, data[data['time']==last_date2]],  ignore_index=True)
+    ohlcv_list.sort_values(by=['time'], inplace=True)
 
-    data = feature_calc(ohlcv_list)
-    last_date2 = datetime.fromtimestamp(last_date/ 1000).strftime('%Y-%m-%d %H:%M')
+    add_data = feature_calc(ohlcv_list)
+    add_data = add_data[(add_data['time']!=last_date) & (add_data['time']!=last_date2)]
 
-    print(f"\nUpdated data for {ticker} per {last_date2}")
-    return data
+    date_print = datetime.fromtimestamp(last_date/ 1000).strftime('%Y-%m-%d %H:%M')
+
+    print(f"\nUpdated data for {ticker} per {date_print}")
+    return add_data
 
 
 def write_data(ticker, exchange, columns, start_ts):
@@ -93,6 +98,8 @@ def write_data(ticker, exchange, columns, start_ts):
         data = ohlcv_list
 
     ohlcv = pd.DataFrame(data, columns=columns)
+    ohlcv.sort_values(by=['time'], inplace=True)
+
     ticker = ticker.replace("/", "_")
 
     data = feature_calc(ohlcv)
