@@ -9,12 +9,12 @@ def feature_calc(data):
     data['datetime'] = data['time'].apply(lambda x: datetime.fromtimestamp(x / 1000).strftime('%Y-%m-%d %H:%M'))
 
     #calculating different exponential weighted moving averages (12 day, 26 day and 50 day )
-    data["12dayewm"] = data['close'].ewm(span=(12 * 24), adjust=False).mean()
-    data["26dayewm"] = data['close'].ewm(span=(26 * 24), adjust=False).mean()
-    data["50dayewm"] = data['close'].ewm(span=(50 * 24), adjust=False).mean()
+    data["twelve_day_ewm"] = data['close'].ewm(span=(12 * 24), adjust=False).mean()
+    data["twentysix_day_ewm"] = data['close'].ewm(span=(26 * 24), adjust=False).mean()
+    data["fifty_day_ewm"] = data['close'].ewm(span=(50 * 24), adjust=False).mean()
 
     #calculate the MACD
-    data["MACD"] = data["12dayewm"] - data["26dayewm"]
+    data["MACD"] = data["twelve_day_ewm"] - data["twentysix_day_ewm"]
 
     #calculate the OBV
     obv = 0

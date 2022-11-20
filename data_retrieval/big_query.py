@@ -34,8 +34,8 @@ def cloud_validate_data(ticker:str):
     table_ref = dataset_ref.table(ticker)
 
     try:
-        client.get_table(table_ref)
-    except NotFound:
+        table = client.get_table(table_ref)
+    except:
         print("Table {} is not found.".format(table_ref))
         validate = False
 

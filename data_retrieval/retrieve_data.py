@@ -1,7 +1,6 @@
 import ccxt
 import pandas as pd
 import os
-import csv
 
 from datetime import datetime
 from data_retrieval.big_query import cloud_get_data, cloud_save_data, cloud_validate_data, cloud_append_data
@@ -11,7 +10,7 @@ from model.features import feature_calc
 
 def retrieve_data(ticker_list):
     """
-    this function is used to retrieve data from FTX.
+    this function is used to retrieve data from an exchange.
     """
 
     columns = ["time", "open", "high", "low", "close", "volume"]
@@ -77,6 +76,7 @@ def update_data(data, ticker, exchange, columns):
     ohlcv_list = pd.concat([ohlcv_list, data[data['time']==last_date2]],  ignore_index=True)
     ohlcv_list.sort_values(by=['time'], inplace=True)
 
+    # to do check moving averages (12 day, 26 day and 50 day )
     add_data = feature_calc(ohlcv_list)
     add_data = add_data[(add_data['time']!=last_date) & (add_data['time']!=last_date2)]
 
