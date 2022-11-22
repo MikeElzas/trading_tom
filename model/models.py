@@ -5,19 +5,24 @@ import pandas as pd
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import cross_validate
 from sklearn.model_selection import train_test_split
+
 from prophet import Prophet
 from data_retrieval.retrieve_data import retrieve_data
 
 def log_regression(ticker_list):
-
+  """"a function that based on the ticker creates a volume - return logistic regression
+    ticker: Ticker should be in format XXX_XXX e.g. BTC_USDT
+    """
     #create and import the data
     data_dict = retrieve_data(ticker_list)
     score_dict = {}
+
 
     for ticker in data_dict.keys():
 
         #returns the dataframe
         data = data_dict[ticker]
+
 
         #function that makes the return either 1, if it is above 0.005 and otherwise 0
         def return_log(df):
@@ -39,8 +44,10 @@ def log_regression(ticker_list):
         X = data[["lagged_vol"]]
         y = data["return_log"]
 
+
         #split the data in train and test sets
         X_train, X_test, y_train, y_test =  train_test_split(X,y, test_size= 0.3, random_state=42)
+
 
         #define, train and score the model
         model = LogisticRegression()
@@ -55,13 +62,16 @@ def log_regression(ticker_list):
         filename = 'trained_log_model'
         pickle.dump(model, open(filename, 'wb'))
 
+
     return score_dict
+
 
 
 # def prophet(ticker_list):
 
 
 if __name__ == "__main__":
+
 
     ticker_list = ["BTC/USDT", "ETH/USDT", "SOL/USDT"]
     print(f"\n{log_regression(ticker_list)}")
