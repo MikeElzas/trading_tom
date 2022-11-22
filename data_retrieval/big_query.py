@@ -1,10 +1,12 @@
 from google.cloud import bigquery
 from google.cloud.exceptions import NotFound
+from google.oauth2.service_account import Credentials
 
 import pandas as pd
 import os
 
-client = bigquery.Client()
+credentials = Credentials.from_service_account_file(os.path.abspath(".")+f"/trading-tom.json")
+client = bigquery.Client(credentials= credentials)
 PROJECT_ID = os.environ.get("PROJECT_ID")
 DATASET = os.environ.get("DATASET")
 

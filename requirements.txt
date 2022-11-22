@@ -23,9 +23,11 @@ yapf
 gcsfs
 google-cloud-storage
 google-cloud-bigquery
+google-auth
 prophet
 mlflow
 s3fs
+fastapi
 
 # utilities
 six>=1.14

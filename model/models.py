@@ -10,9 +10,12 @@ from prophet import Prophet
 from data_retrieval.retrieve_data import retrieve_data
 
 def log_regression(ticker_list):
-  """"a function that based on the ticker creates a volume - return logistic regression
+    """
+    a function that based on the ticker creates a volume - return logistic regression
     ticker: Ticker should be in format XXX_XXX e.g. BTC_USDT
     """
+
+
     #create and import the data
     data_dict = retrieve_data(ticker_list)
     score_dict = {}
