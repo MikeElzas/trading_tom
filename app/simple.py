@@ -1,6 +1,8 @@
 from fastapi import FastAPI
+from model.models import log_regression
 
 app = FastAPI()
+ticker_list = ["BTC/USDT", "ETH/USDT", "SOL/USDT"]
 
 # Define a root `/` endpoint
 @app.get('/')
@@ -9,5 +11,9 @@ def index():
 
 
 @app.get('/predict')
-def predict():
-    return {'wait': 64}
+def creating_model():
+    score = log_regression(ticker_list)
+    return score
+
+if __name__=="__main__":
+    creating_model()

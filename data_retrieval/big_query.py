@@ -2,12 +2,12 @@ from google.cloud import bigquery
 from google.cloud.exceptions import NotFound
 
 import pandas as pd
-
 import os
 
 client = bigquery.Client()
 PROJECT_ID = os.environ.get("PROJECT_ID")
 DATASET = os.environ.get("DATASET")
+
 
 def cloud_get_data(ticker:str):
     """
@@ -25,6 +25,7 @@ def cloud_get_data(ticker:str):
 
     return data
 
+
 def cloud_validate_data(ticker:str):
     validate = True
     ticker = ticker.replace("/", "_")
@@ -33,8 +34,8 @@ def cloud_validate_data(ticker:str):
     table_ref = dataset_ref.table(ticker)
 
     try:
-        client.get_table(table_ref)
-    except NotFound:
+        table = client.get_table(table_ref)
+    except:
         print("Table {} is not found.".format(table_ref))
         validate = False
 
@@ -42,6 +43,7 @@ def cloud_validate_data(ticker:str):
     #    client.delete_table(table_ref, not_found_ok=True)
 
     return validate
+
 
 def cloud_append_data(data:pd.DataFrame,ticker:str):
     """
