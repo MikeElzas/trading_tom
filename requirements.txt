@@ -10,6 +10,7 @@ pandas
 scikit-learn
 ccxt
 plotly
+tensorflow
 # statsmodels
 
 # tests/linter
