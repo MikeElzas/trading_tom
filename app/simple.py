@@ -1,5 +1,7 @@
 from fastapi import FastAPI
-from model.models import log_regression
+import pickle
+import pandas as pd
+import numpy as np
 
 app = FastAPI()
 ticker_list = ["BTC/USDT", "ETH/USDT", "SOL/USDT"]
@@ -11,9 +13,13 @@ def index():
 
 
 @app.get('/predict')
-def creating_model():
-    score = log_regression(ticker_list)
-    return score
+def predict():
+    model = pickle.load(open("app/trained_log_model.pkl", "rb"))
+    data = dict({"lagged_vol": [1544256894.22]})
+    X = pd.DataFrame(data = data)
+    var, = model.predict(X)
+    var=int(var)
+    return {'pred': var}
 
 if __name__=="__main__":
-    creating_model()
+    predict()
