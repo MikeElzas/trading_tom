@@ -13,12 +13,13 @@ def index():
 
 
 @app.get('/predict')
-def predict():
+def predict(lagged_vol: float,
+            ewma: float):
     model = pickle.load(open("app/trained_log_model.pkl", "rb"))
-    data = dict({"lagged_vol": [1544256894.22]})
-    X = pd.DataFrame(data = data)
-    var, = model.predict(X)
-    var=int(var)
+    X_pred = pd.DataFrame({"lagged_vol" : [float(lagged_vol)]
+                           }, index = [0])
+    var, = model.predict(X_pred)
+    var = int(var)
     return {'pred': var}
 
 if __name__=="__main__":
