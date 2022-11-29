@@ -92,17 +92,18 @@ def lstm_model_return(ticker_list):
         model.add(Activation('linear'))
 
         # Trains the model
-        batch_size = 64
+        batch_size = 256
 
         model.compile(
-            loss='mean_squared_error',
-            optimizer='adam'
+            loss='mse',
+            optimizer='adam',
+            metrics=['mae']
         )
 
         history = model.fit(
             X_train,
             y_train,
-            epochs=50,
+            epochs=1,
             batch_size=batch_size,
             shuffle=False,
             validation_split=0.1
