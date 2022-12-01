@@ -5,11 +5,13 @@ import pickle
 import numpy as np
 import pandas as pd
 import tensorflow as tf
+import mlflow
+
 keras = tf.keras
 
 from sklearn.preprocessing import MinMaxScaler
+from keras.callbacks import EarlyStopping
 from keras.layers import Bidirectional, Dropout, Activation, Dense, LSTM
-# from tf.compat.v1.keras.layers import CuDNNLSTM
 from keras.models import Sequential
 from keras.optimizers import RMSprop
 
@@ -56,7 +58,7 @@ def lstm_model_return(ticker_list):
         # Preprocesses the data
         scaler = MinMaxScaler()
 
-        close_price = data["close"].values.reshape(-1, 1)
+        close_price = data[["close"]].values.reshape(-1, 1)
 
         scaled_close = scaler.fit_transform(close_price)
         scaled_close = scaled_close[~np.isnan(scaled_close)]
@@ -96,6 +98,7 @@ def lstm_model_return(ticker_list):
         # Trains the model
         opt = RMSprop(learning_rate=0.01)
         batch_size = 64
+        es = EarlyStopping(patience=5, restore_best_weights=True)
 
         model.compile(
             loss='mse',
@@ -106,8 +109,9 @@ def lstm_model_return(ticker_list):
         history = model.fit(
             X_train,
             y_train,
-            epochs=30,
+            epochs=50,
             batch_size=batch_size,
+            callbacks=[es],
             shuffle=False,
             validation_split=0.1
         )
@@ -125,6 +129,97 @@ def lstm_model_return(ticker_list):
 
     return score_dict
 
+
+def lstm_model(ticker_list):
+    """
+    a function that based on the ticker creates a LSTM deep learning model
+    ticker: Ticker should be in format XXX_XXX e.g. BTC_USDT
+    """
+
+    # Create and import the data
+    data_dict = retrieve_data(ticker_list)
+    score_dict = {}
+
+    for ticker in data_dict.keys():
+
+        # Returns the dataframe
+        data = data_dict[ticker]
+
+        # Preprocesses the data
+        scaler = MinMaxScaler()
+
+        data_set = data[["close", "volume", "MACD", "obv_ema"]].values.reshape(-1, 4)
+
+        scaled_data_set = scaler.fit_transform(data_set)
+        scaled_data_set = scaled_data_set[~np.isnan(scaled_data_set)]
+        scaled_data_set = scaled_data_set.reshape(-1, 4)
+
+        # Splits the data in train and test sets
+        seq_len = 100
+
+        X_train, y_train, X_test, y_test =\
+        preprocess(scaled_data_set, seq_len, train_split = 0.95)
+
+        # Creates the model
+        dropout = 0.2
+        window_size = seq_len - 1
+
+        model = Sequential()
+
+        model.add(Bidirectional(
+        LSTM(window_size, return_sequences=True),
+        input_shape=(window_size, X_train.shape[-1])
+        ))
+        model.add(Dropout(rate=dropout))
+
+        model.add(Bidirectional(
+        LSTM((window_size * 2), return_sequences=True)
+        ))
+        model.add(Dropout(rate=dropout))
+
+        model.add(Bidirectional(
+        LSTM(window_size, return_sequences=False)
+        ))
+
+        model.add(Dense(units=1))
+
+        model.add(Activation('linear'))
+
+        # Trains the model
+        opt = RMSprop(learning_rate=0.01)
+        batch_size = 64
+        es = EarlyStopping(patience=5, restore_best_weights=True)
+
+        model.compile(
+            loss='mse',
+            optimizer=opt,
+            metrics=['mae']
+        )
+
+        history = model.fit(
+            X_train,
+            y_train,
+            epochs=50,
+            batch_size=batch_size,
+            callbacks=[es],
+            shuffle=False,
+            validation_split=0.1
+        )
+
+        loss = model.evaluate(X_test, y_test)
+
+        # predicts the returns over the selected period
+        y_hat = model.predict(X_test)
+
+        y_test_inv = scaler.inverse_transform(y_test)
+        y_hat_inv = scaler.inverse_transform(y_hat)
+
+        # Returns the model and parameters
+        score_dict[ticker] = [model, history, loss, y_test_inv, y_hat_inv]
+
+    return score_dict
+
+
 # def lstm_model_update(ticker_list):
 #     """
 #     a function that based on the ticker updates a LSTM deep learning model
@@ -139,22 +234,22 @@ def lstm_model_return(ticker_list):
 
 #         # Returns the dataframe
 #         data = data_dict[ticker]
-#         data = data.tail(300)
 
 #         # Preprocesses the data
 #         scaler = MinMaxScaler()
 
 #         close_price = data["close"].values.reshape(-1, 1)
 
-#         scaled_close = scaler.fit_transform(close_price)
+#         scaled_close = scaler.fit_transform(close_price) #or only fit?
 #         scaled_close = scaled_close[~np.isnan(scaled_close)]
 #         scaled_close = scaled_close.reshape(-1, 1)
 
-#         # Splits the data in train and test sets
 #         seq_len = 100
 
-#         X_train, y_train, X_test, y_test =\
-#         preprocess(scaled_close, seq_len, train_split = 0.95)
+#         data_new = to_sequences(data, seq_len)[-24:, :] #get last 24 hours
+
+#         X_train_new = data_new[:, :-1, :]
+#         y_train_new = data_new[:, -1, :]
 
 #         # Imports the current LSMT (return) model for the indicated ticker
 #         model = pickle.load(open("TEST/TEST", "rb"))
@@ -170,15 +265,15 @@ def lstm_model_return(ticker_list):
 #         )
 
 #         history = model.fit(
-#             X_train,
-#             y_train,
+#             X_train_new,
+#             y_train_new,
 #             epochs=1,
 #             batch_size=batch_size,
 #             shuffle=False,
 #             validation_split=0.1
 #         )
 
-#         loss = model.evaluate(X_test, y_test)
+#         loss = model.evaluate(X_test, y_test) #what to use?
 
 #         # predicts the returns over the selected period
 #         y_hat = model.predict(X_test)
@@ -195,4 +290,4 @@ def lstm_model_return(ticker_list):
 if __name__ == "__main__":
 
     ticker_list = ["BTC/USDT", "ETH/USDT", "SOL/USDT"]
-    print(f"\n{lstm_model_return(ticker_list)}")
+    print(f"\n{lstm_model(ticker_list)}")
