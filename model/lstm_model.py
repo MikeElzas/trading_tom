@@ -33,10 +33,10 @@ def preprocess(data_raw, seq_len, train_split):
     num_train = int(train_split * data.shape[0])
 
     X_train = data[:num_train, :-1, :]
-    y_train = data[:num_train, -1, :]
+    y_train = data['close'][:num_train, -1, 0]
 
     X_test = data[num_train:, :-1, :]
-    y_test = data[num_train:, -1, :]
+    y_test = data['close'][num_train:, -1, 0]
 
     return X_train, y_train, X_test, y_test
 
