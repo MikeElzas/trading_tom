@@ -1,11 +1,13 @@
 from google.cloud import storage
 import os
 import pickle
-from model.lstm_model import lstm_model
+from model.lstm_model import lstm_model_update
 
-def save_cloud_model(score_dict, ticker_list):
+def save_cloud_model(ticker_list):
+
     client = storage.Client()
-    ticker_list = ['BTC/USDT', 'ETH/USDT', 'SOL/USDT']
+    score_dict = lstm_model_update(ticker_list)
+
     for ticker in ticker_list:
         model_info = score_dict[ticker]
         bucket = client.bucket(os.environ.get('BUCKET_NAME'))
@@ -19,4 +21,4 @@ def save_cloud_model(score_dict, ticker_list):
 if __name__ == "__main__":
 
     ticker_list = ["BTC/USDT", "ETH/USDT", "SOL/USDT"]
-    save_cloud_model(lstm_model(ticker_list),ticker_list)
+    save_cloud_model(ticker_list)
