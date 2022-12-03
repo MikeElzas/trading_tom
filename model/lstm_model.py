@@ -143,7 +143,7 @@ def lstm_model_new(ticker_list):
     for ticker in data_dict.keys():
 
         # Returns the dataframe
-        data = data_dict[ticker].head(1000)
+        data = data_dict[ticker]
 
         # Preprocesses the data
         scaler = MinMaxScaler()
@@ -196,7 +196,7 @@ def lstm_model_new(ticker_list):
         # Trains the model
         learning_rate=0.01
         opt = RMSprop(learning_rate=learning_rate)
-        batch_size = 256 #64
+        batch_size = 64
         es = EarlyStopping(patience=5, restore_best_weights=True)
 
         model.compile(
@@ -208,7 +208,7 @@ def lstm_model_new(ticker_list):
         history = model.fit(
             X_train,
             y_train,
-            epochs=1,
+            epochs=50,
             batch_size=batch_size,
             callbacks=[es],
             shuffle=False,
