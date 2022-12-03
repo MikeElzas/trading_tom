@@ -208,7 +208,7 @@ def lstm_model_new(ticker_list):
         history = model.fit(
             X_train,
             y_train,
-            epochs=50,
+            epochs=1,
             batch_size=batch_size,
             callbacks=[es],
             shuffle=False,
@@ -239,8 +239,9 @@ def lstm_model_new(ticker_list):
 
         # Returns the model and parameters
         score_dict[ticker] = [model, y_test_inv, y_hat_inv]
+        prediction = pd.DataFrame(y_hat_inv, y_test_inv, columns=['y_hat_inv', 'y_test_inv'], ).to_csv('prediction.csv')
 
-    return score_dict
+    return score_dict, prediction
 
 def lstm_model_update(ticker_list):
     """

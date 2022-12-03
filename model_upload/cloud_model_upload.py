@@ -1,12 +1,13 @@
 from google.cloud import storage
 import os
 import pickle
-from model.lstm_model import lstm_model_update
+from model.lstm_model import lstm_model_new
+from google.oauth2.service_account import Credentials
 
 def save_cloud_model(ticker_list):
-
-    client = storage.Client()
-    score_dict = lstm_model_update(ticker_list)
+    credentials = Credentials.from_service_account_file(os.path.abspath(".") + f"/trading-tom.json")
+    client = storage.Client(credentials=credentials)
+    score_dict = lstm_model_new(ticker_list)
 
     for ticker in ticker_list:
         model_info = score_dict[ticker]
