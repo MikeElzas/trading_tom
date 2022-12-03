@@ -122,7 +122,7 @@ def lstm_model_return(ticker_list):
         # predicts the returns over the selected period
         y_hat = model.predict(X_test)
 
-        y_test_inv = scaler.inverse_transform(y_test)
+        y_test_inv = scaler.inverse_transform(y_test.reshape(-1, 1))
         y_hat_inv = scaler.inverse_transform(y_hat)
 
         # Returns the model and parameters
@@ -143,14 +143,14 @@ def lstm_model_new(ticker_list):
     for ticker in data_dict.keys():
 
         # Returns the dataframe
-        data = data_dict[ticker]
+        data = data_dict[ticker].head(1000)
 
         # Preprocesses the data
         scaler = MinMaxScaler()
         scaler_close = MinMaxScaler()
 
-        data_set = data[["volume", "MACD", "obv_ema"]]
-        data_close = data[["close"]]
+        data_set = data[["volume", "MACD", "obv_ema"]].values.reshape(-1, 1)
+        data_close = data[["close"]].values.reshape(-1, 1)
 
         scaled_data_set = scaler.fit_transform(data_set)
         scaled_data_set = scaled_data_set[~np.isnan(scaled_data_set)]
@@ -196,7 +196,7 @@ def lstm_model_new(ticker_list):
         # Trains the model
         learning_rate=0.01
         opt = RMSprop(learning_rate=learning_rate)
-        batch_size = 64
+        batch_size = 256 #64
         es = EarlyStopping(patience=5, restore_best_weights=True)
 
         model.compile(
@@ -220,8 +220,8 @@ def lstm_model_new(ticker_list):
         # predicts the returns over the selected period
         y_hat = model.predict(X_test)
 
-        y_test_inv = scaler_close.inverse_transform([y_test])
-        y_hat_inv = scaler_close.inverse_transform([y_hat])
+        y_test_inv = scaler_close.inverse_transform(y_test.reshape(-1, 1))
+        y_hat_inv = scaler_close.inverse_transform(y_hat)
 
         # saves to MLFLOW
         params = dict(learning_rate=learning_rate,
@@ -235,7 +235,7 @@ def lstm_model_new(ticker_list):
                        val_mae=history.history['val_mae'],
                        test_mae=test_eval[1])
 
-        mlflow_save(ticker, model, params, metrics)
+        # mlflow_save(ticker, model, params, metrics)
 
         # Returns the model and parameters
         score_dict[ticker] = [model, y_test_inv, y_hat_inv]
